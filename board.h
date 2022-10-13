@@ -13,6 +13,10 @@ public:
 	void createGame();
 	void printBoard();
 	void play();
+	bool endGame();
+	int revealResult();
+	int minimax(int counter, bool player_turn);
+	void findBestMove(int& row, int& col);
 
 private:
 	char player_token;
