@@ -11,7 +11,6 @@
 int main(int argc, char* argv[]){
 	Board board;
 	board.createGame();
-	board.printBoard();
 	board.play();
 
 }

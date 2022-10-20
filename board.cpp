@@ -24,14 +24,19 @@ bool Board::endGame(){
     return true;
 }
 
+/* Return value needs to have higher magnitude than 1
+because the +counter or -counter. Since counter starts at 0
+max amount counter can become, while still affecting the return
+value of minimax, is 8. So return values needs to be greater than 8  
+*/
 int Board::revealResult(){
 	//Check if row win has occured
 	for(int row = 0; row < 3; row++){
 		if(grid[row][0] == grid[row][1] && grid[row][1] == grid[row][2]){
 			if(grid[row][0] == player_token){
-				return -1;
-			}else{
-				return 1;
+				return -9;
+			}else if(grid[row][0] == computer_token){
+				return 9;
 			}
 		}
 	}
@@ -39,9 +44,9 @@ int Board::revealResult(){
 	for(int col = 0; col < 3; col++){
 		if(grid[0][col] == grid[1][col] && grid[1][col] == grid[2][col]){
 			if(grid[0][col] == player_token){
-				return -1;
-			}else{
-				return 1;
+				return -9;
+			}else if(grid[0][col] == computer_token){
+				return 9;
 			}
 		}
 	}
@@ -49,41 +54,72 @@ int Board::revealResult(){
 	//check if diagonal win has occured
 	if((grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2]) || (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0])){
 		if(grid[1][1] == player_token){
-			return -1;
-		}else{
-			return 1;
+			return -9;
+		}else if(grid[1][1] == computer_token){
+			return 9;
 		}
 	}
 	return 0;
 }
 
 void Board::play(){
-	/*
+	
 	srand(time(NULL));
 	bool player_turn = (rand() % 2 == 0) ? true : false;
-	while(!endGame()){
+	player_turn = true;
+	bool first_turn = true;
+	while(!endGame() && revealResult() == 0){
 		if(player_turn){
 			int num;
+			int row;
+			int col;
+			if(first_turn) printBoard();
 			std::cout << "Make a move (ENTER # from 1-9): ";
 			std::cin >> num;
-			if()
+			if(num >= 1 && num <= 3){
+				row = 0;
+				col = num - 1;
+			}else if(num >= 4 && num <= 6){
+				row = 1;
+				col = num - 4;
+			}else if(num >= 7 && num <= 9){
+				row = 2;
+				col = num - 7;
+			}
+			if(grid[row][col] != ' '){
+				std::cout << "Please make a move on an empty space" << std::endl;
+				continue;
+			}else{
+				grid[row][col] = player_token;
+			}
+			first_turn = false;
 		}else{
-
+			if(first_turn){
+				grid[0][0] = computer_token;
+			}else{
+				int row;
+				int col;
+				findBestMove(row, col);
+				grid[row][col] = computer_token;
+			}
+			first_turn = false;
 		}
-
-
-
+		printBoard();
 		player_turn = !player_turn;
 	}
-	*/
+	if(revealResult() < 0){
+		std::cout << "Congratulations you won!" <<std::endl;
+	}else if(revealResult() > 0){
+		std::cout << "You Lost" <<std::endl;
+	}else{
+		std::cout << "It's a tie" << std::endl;
+	}
+	
 }
 
 int Board::minimax(int counter, bool player_turn){
     int score = revealResult();
-
-    if (score == 1){
-        return score;
-    }else if (score == -1){
+    if (score != 0){
         return score;
     }else if (endGame()){
         return 0;
@@ -97,7 +133,7 @@ int Board::minimax(int counter, bool player_turn){
                 if (grid[i][j]==' '){
 
                     grid[i][j] = computer_token;
-                    best = std::max(best, minimax(counter+1, !player_turn));
+                    best = std::max(best, minimax(counter+1, !player_turn) - counter);
                     grid[i][j] = ' ';
                 }
             }
@@ -110,7 +146,7 @@ int Board::minimax(int counter, bool player_turn){
                 if (grid[i][j]==' '){
 
                     grid[i][j] = player_token;
-                    best = std::min(best, minimax(counter+1, !player_turn));
+                    best = std::min(best, minimax(counter+1, !player_turn) + counter);
                     grid[i][j] = ' ';
                 }
             }
@@ -127,7 +163,7 @@ void Board::findBestMove(int& row, int& col){
             if (grid[i][j]==' '){
 
                 grid[i][j] = computer_token;
-                int move = minimax(0, false);
+                int move = minimax(0, true);
                 grid[i][j] = ' ';
 
                 if (move > best){
@@ -164,4 +200,5 @@ void Board::printBoard(){
 		if(i != 2)
 		std::cout << "— — —" << std::endl;
 	}
+	std::cout << "--------------------------------" << std::endl;
 }
