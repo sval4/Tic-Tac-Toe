@@ -1,12 +1,7 @@
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <typeinfo>
-#include <iomanip>
-#include <algorithm>
-#include <cstdlib>
 #include <climits>
+#include <string>
+#include <vector>
 #include "board.h"
 
 Board::Board(){
@@ -63,57 +58,66 @@ int Board::revealResult(){
 }
 
 void Board::play(){
-	
 	srand(time(NULL));
-	bool player_turn = (rand() % 2 == 0) ? true : false;
-	player_turn = true;
-	bool first_turn = true;
-	while(!endGame() && revealResult() == 0){
-		if(player_turn){
-			int num;
-			int row;
-			int col;
-			if(first_turn) printBoard();
-			std::cout << "Make a move (ENTER # from 1-9): ";
-			std::cin >> num;
-			if(num >= 1 && num <= 3){
-				row = 0;
-				col = num - 1;
-			}else if(num >= 4 && num <= 6){
-				row = 1;
-				col = num - 4;
-			}else if(num >= 7 && num <= 9){
-				row = 2;
-				col = num - 7;
+	bool replay = true;
+	while(replay){
+		bool player_turn = (rand() % 2 == 0) ? true : false;
+
+		while(!endGame() && revealResult() == 0){
+			printBoard();
+			if(player_turn){
+				int num;
+				int row;
+				int col;
+				std::cout << "Make a move (ENTER # from 1-9): ";
+				std::cin >> num;
+				if(num >= 1 && num <= 3){
+					row = 0;
+					col = num - 1;
+				}else if(num >= 4 && num <= 6){
+					row = 1;
+					col = num - 4;
+				}else if(num >= 7 && num <= 9){
+					row = 2;
+					col = num - 7;
+				}
+				
+				if(grid[row][col] != ' '){
+					std::cout << "Please make a move on an empty space" << std::endl;
+					continue;
+				}else{
+					grid[row][col] = player_token;
+				}
 			}
-			if(grid[row][col] != ' '){
-				std::cout << "Please make a move on an empty space" << std::endl;
-				continue;
-			}else{
-				grid[row][col] = player_token;
-			}
-			first_turn = false;
-		}else{
-			if(first_turn){
-				grid[0][0] = computer_token;
-			}else{
+			else{
+				std::cout << "Computer Move:" << std::endl;
 				int row;
 				int col;
 				findBestMove(row, col);
 				grid[row][col] = computer_token;
 			}
-			first_turn = false;
+			player_turn = !player_turn;
 		}
+
 		printBoard();
-		player_turn = !player_turn;
+		if(revealResult() < 0){
+			std::cout << "Congratulations you won!" <<std::endl;
+		}else if(revealResult() > 0){
+			std::cout << "You Lost" <<std::endl;
+		}else{
+			std::cout << "It's a tie" << std::endl;
+		}
+
+		std::string answer;
+		std::cout << "Would you like to replay? (y/n): ";
+		std::cin >> answer;
+		if(answer == "y"){
+			clearGrid();
+		}else{
+			replay = false;
+		}
 	}
-	if(revealResult() < 0){
-		std::cout << "Congratulations you won!" <<std::endl;
-	}else if(revealResult() > 0){
-		std::cout << "You Lost" <<std::endl;
-	}else{
-		std::cout << "It's a tie" << std::endl;
-	}
+	
 	
 }
 
@@ -133,6 +137,7 @@ int Board::minimax(int counter, bool player_turn){
                 if (grid[i][j]==' '){
 
                     grid[i][j] = computer_token;
+                    //the - counter ensures quickest path to victory is taken
                     best = std::max(best, minimax(counter+1, !player_turn) - counter);
                     grid[i][j] = ' ';
                 }
@@ -146,6 +151,7 @@ int Board::minimax(int counter, bool player_turn){
                 if (grid[i][j]==' '){
 
                     grid[i][j] = player_token;
+                    //the + counter assumes player is taking quickest path to victory
                     best = std::min(best, minimax(counter+1, !player_turn) + counter);
                     grid[i][j] = ' ';
                 }
@@ -201,4 +207,12 @@ void Board::printBoard(){
 		std::cout << "— — —" << std::endl;
 	}
 	std::cout << "--------------------------------" << std::endl;
+}
+
+void Board::clearGrid(){
+	for(int i = 0; i < (int)grid.size(); i++){
+		for(int j = 0; j < (int) grid[i].size(); j++){
+			grid[i][j] = ' ';
+		}
+	}
 }

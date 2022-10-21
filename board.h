@@ -1,7 +1,5 @@
 #ifndef __board_h
 #define __board_h
-#include <string>
-#include <fstream>
 #include <vector>
 
 
@@ -17,6 +15,7 @@ public:
 	int revealResult();
 	int minimax(int counter, bool player_turn);
 	void findBestMove(int& row, int& col);
+	void clearGrid();
 
 private:
 	char player_token;
